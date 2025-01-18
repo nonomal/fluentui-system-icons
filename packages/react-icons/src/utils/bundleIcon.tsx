@@ -1,16 +1,16 @@
 import * as React from "react";
 import { iconFilledClassName, iconRegularClassName } from "./constants";
-import { FluentIconsProps } from "./FluentIconsProps.types";
 import { makeStyles, mergeClasses } from "@griffel/react";
+import { FluentIcon } from "./createFluentIcon";
 
 const useBundledIconStyles = makeStyles({
     root: { display: "none" },
     visible: { display: "inline" }
 });
 
-const bundleIcon = (FilledIcon: React.FC<FluentIconsProps>, RegularIcon: React.FC<FluentIconsProps>) => {
-    const Component: React.FC<FluentIconsProps> = (props) => {
-        const { className, primaryFill = 'currentColor', filled, ...rest } = props;
+const bundleIcon = (FilledIcon: FluentIcon, RegularIcon: FluentIcon) => {
+    const Component: FluentIcon = (props) => {
+        const { className, filled, ...rest } = props;
         const styles = useBundledIconStyles();
         return (
             <React.Fragment>
@@ -22,7 +22,6 @@ const bundleIcon = (FilledIcon: React.FC<FluentIconsProps>, RegularIcon: React.F
                         iconFilledClassName,
                         className
                     )}
-                    fill={primaryFill}
                 />
                 <RegularIcon
                     {...rest}
@@ -32,7 +31,6 @@ const bundleIcon = (FilledIcon: React.FC<FluentIconsProps>, RegularIcon: React.F
                       iconRegularClassName,
                       className
                     )}
-                    fill={primaryFill}
                 />
             </React.Fragment>
         )

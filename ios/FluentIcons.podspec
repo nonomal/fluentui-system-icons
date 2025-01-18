@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'FluentIcons'
-  s.version          = '1.1.198'
+  s.version          = '1.1.273'
   s.summary          = 'FluentIcons'
 
   s.description      = <<-DESC
@@ -20,16 +20,16 @@ FluentIcons
   s.author           = { 'Microsoft, Inc.' => 'nicroma@microsoft.com' }
   s.source           = { :git => 'https://github.com/microsoft/fluentui-system-icons.git', :tag => s.version.to_s }
 
-  s.ios.deployment_target = '8.0'
-  s.osx.deployment_target  = '10.12'
+  s.ios.deployment_target = '12.0'
+  s.osx.deployment_target  = '10.13'
 
   # This podspec is symlinked to the root directory of this repo
   # so all paths will need the prefix `ios/FluentIcons`
 
   s.subspec 'Code' do |sp|
     sp.source_files = 'ios/FluentIcons/Classes/*.swift'
-    sp.ios.source_files   = 'ios/FluentIcons/Classes/ios/*.swift'
-    sp.osx.source_files   = 'ios/FluentIcons/Classes/mac/*.swift'
+    sp.ios.source_files   = 'ios/FluentIcons/Classes/*.swift'
+    sp.osx.source_files   = 'ios/FluentIcons/Classes/*.swift'
   end
 
   s.subspec 'Assets' do |sp|

@@ -1,16 +1,24 @@
 # Fluent UI System Icons
 
-![CI](https://github.com/microsoft/fluentui-system-icons/workflows/CI/badge.svg)
+![Pull request validation](https://github.com/microsoft/fluentui-system-icons/actions/workflows/pr.yml/badge.svg)
 
 Fluent UI System Icons are a collection of familiar, friendly and modern icons from Microsoft.
 
-![fluent system icons](art/readme-banner.png)
+![Fluent System Icons](art/readme-banner.png)
 
 ## Icon List
 
-[View the full list of regular icons](icons_regular.md)
+- [View the full list of regular icons](icons_regular.md)
 
-[View the full list of filled icons](icons_filled.md)
+- [View the full list of filled icons](icons_filled.md)
+
+
+## Direction
+Within the metadata.json file for an icon, a property named `directionType` is used to indicate the direction of the icon. This property can have one of the following values:
+- `unique`, meaning that the icon is unique and has a specific RTL and LTR version
+- `mirror`, meaning that the icon can be mirrored for RTL or LTR languages
+
+The property `singleton` is also used to indicate the default direction that should be used for the icon. 
 
 ## Installation
 
@@ -25,10 +33,10 @@ repositories {
 }
 ```
 
-Include the following dependency in your project's `build.gradle`
+Include the following dependency in your project's `build.gradle`:
 
 ```groovy
-implementation 'com.microsoft.design:fluent-system-icons:1.1.198@aar'
+implementation 'com.microsoft.design:fluent-system-icons:1.1.273@aar'
 ```
 
 For library docs, see [android/README.md](android/README.md).
@@ -40,13 +48,13 @@ For library docs, see [android/README.md](android/README.md).
 ```ruby
 use_frameworks!
 
-pod "FluentIcons", "1.1.198"
+pod "FluentIcons", "1.1.273"
 ```
 
 #### Carthage
 
 ```bash
-git "git@github.com:microsoft/fluentui-system-icons.git" "1.1.198"
+git "git@github.com:microsoft/fluentui-system-icons.git" "1.1.273"
 ```
 
 For library docs, see [ios/README.md](ios/README.md).
@@ -58,10 +66,10 @@ In the `pubspec.yaml` of your flutter project, add the following dependency:
 ```yaml
 dependencies:
   ...
-  fluentui_system_icons: ^1.1.198
+  fluentui_system_icons: ^1.1.273
 ```
 
-For library docs, see [flutter/README.md](flutter/README.md)
+For library docs, see [flutter/README.md](flutter/README.md).
 
 ### Plain svg
 
@@ -73,20 +81,20 @@ Inline svg directly. See [packages/svg-icons/README.md](packages/svg-icons/READM
 
 The importer generates the Android and iOS libraries from the icons in the `assets` directory.
 
-Jump into the directory
+Jump into the directory:
 
 ```
 cd importer
 ```
 
-Install npm dependencies
+Install npm dependencies:
 
 ```
 npm install
 npm run clean
 ```
 
-List all the available commands
+List all the available commands:
 
 ```
 npm run
@@ -112,7 +120,7 @@ You can build and run the demo apps following the steps below.
 Prerequisite: Make sure you have flutter configured in Android Studio
 
 1. Open the [flutter](flutter) directory in Android Studio
-2. Select the 'example' in the directory and open it in Android Studio
+2. Select the `example` in the directory and open it in Android Studio
 3. Click run
 
 ## Contact

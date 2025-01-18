@@ -1,23 +1,24 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-const svgr = require("@svgr/core");
 const fs = require("fs");
 const path = require("path");
-const process = require("process");
 const argv = require("yargs").boolean("selector").default("selector", false).argv;
 const _ = require("lodash");
 
 const SRC_PATH = argv.source;
 const DEST_PATH = argv.dest;
-
-const TSX_EXTENSION = '.tsx'
+const RTL_FILE = argv.rtl;
 
 if (!SRC_PATH) {
   throw new Error("Icon source folder not specified by --source");
 }
 if (!DEST_PATH) {
   throw new Error("Output destination folder not specified by --dest");
+}
+
+if (!RTL_FILE) {
+  throw new Error("RTL file not specified by --rtl");
 }
 
 if (!fs.existsSync(DEST_PATH)) {
@@ -70,8 +71,12 @@ function processFiles(src, dest) {
   indexContents.push('export { FluentIconsProps } from \'./utils/FluentIconsProps.types\'');
   indexContents.push('export { default as wrapIcon } from \'./utils/wrapIcon\'');
   indexContents.push('export { default as bundleIcon } from \'./utils/bundleIcon\'');
+  indexContents.push('export { createFluentIcon } from \'./utils/createFluentIcon\'');
+  indexContents.push('export type { FluentIcon } from \'./utils/createFluentIcon\'');
   indexContents.push('export * from \'./utils/useIconState\'');
   indexContents.push('export * from \'./utils/constants\'');
+  indexContents.push('export { IconDirectionContextProvider, useIconContext } from \'./contexts/index\'');
+  indexContents.push('export type { IconDirectionContextValue } from \'./contexts/index\'');
 
   fs.writeFileSync(indexPath, indexContents.join('\n'), (err) => {
     if (err) throw err;
@@ -87,31 +92,13 @@ function processFiles(src, dest) {
  */
 function processFolder(srcPath, destPath, resizable) {
   var files = fs.readdirSync(srcPath)
-
-  // These options will be passed to svgr/core
-  // See https://react-svgr.com/docs/options/ for more info
-  var svgrOpts = {
-    template: fileTemplate,
-    expandProps: 'start', // HTML attributes/props for things like accessibility can be passed in, and will be expanded on the svg object at the start of the object
-    svgProps: { className: '{className}'}, // In order to provide styling, className will be used
-    replaceAttrValues: { '#212121': '{primaryFill}' }, // We are designating primaryFill as the primary color for filling. If not provided, it defaults to null.
-    typescript: true,
-    icon: true
-  }
-
-  var svgrOptsSizedIcons = {
-    template: fileTemplate,
-    expandProps: 'start', // HTML attributes/props for things like accessibility can be passed in, and will be expanded on the svg object at the start of the object
-    svgProps: { className: '{className}'}, // In order to provide styling, className will be used
-    replaceAttrValues: { '#212121': '{primaryFill}' }, // We are designating primaryFill as the primary color for filling. If not provided, it defaults to null.
-    typescript: true
-  }
-
   /** @type string[] */
   const iconExports = [];
+  var metadata = JSON.parse(fs.readFileSync(RTL_FILE, 'utf-8'));
+  //console.log(metadata);
   files.forEach(function (file, index) {
     var srcFile = path.join(srcPath, file)
-    if (fs.lstatSync(srcFile).isDirectory()) {
+    if (fs.lstatSync(srcFile).isDirectory() || !file.endsWith('.svg')) {
       // for now, ignore subdirectories/localization, until we have a plan for handling it
       // Will likely involve appending the lang/locale to the end of the friendly name for the unique component name
       // var joinedDestPath = path.join(destPath, file)
@@ -123,24 +110,19 @@ function processFolder(srcPath, destPath, resizable) {
       if(resizable && !file.includes("20")) {
         return
       }
-      var iconName = file.substr(0, file.length - 4) // strip '.svg'
+      var iconName = file.substring(0, file.length - 4) // strip '.svg'
       iconName = iconName.replace("ic_fluent_", "") // strip ic_fluent_
       iconName = resizable ? iconName.replace("20", "") : iconName
       var destFilename = _.camelCase(iconName) // We want them to be camelCase, so access_time would become accessTime here
       destFilename = destFilename.replace(destFilename.substring(0, 1), destFilename.substring(0, 1).toUpperCase()) // capitalize the first letter
+      var flipInRtl = metadata[destFilename] === 'mirror';  //checks rtl.json to see if icon is autoflippable
 
       var iconContent = fs.readFileSync(srcFile, { encoding: "utf8" })
-      
-      var jsxCode = resizable ? svgr.default.sync(iconContent, svgrOpts, { filePath: file }) : svgr.default.sync(iconContent, svgrOptsSizedIcons, { filePath: file })
-      var jsCode = 
-`
-
-const ${destFilename}Icon = (props: FluentIconsProps) => {
-  const { fill: primaryFill = 'currentColor', className } = props;
-  return ${jsxCode};
-}
-export const ${destFilename} = /*#__PURE__*/wrapIcon(/*#__PURE__*/${destFilename}Icon, '${destFilename}');
-      `
+      const getAttr = (key) => [...iconContent.matchAll(`(?<= ${key}=)".+?"`)].map((v) => v[0]);
+      const width = resizable ? '"1em"' : getAttr("width")[0];
+      const paths = getAttr("d").join(',');
+      const options = flipInRtl ? `, { flipInRtl: true }` : '';
+      var jsCode = `export const ${destFilename} = (/*#__PURE__*/createFluentIcon('${destFilename}', ${width}, [${paths}]${options}));`
       iconExports.push(jsCode);
     }
   });
@@ -149,13 +131,13 @@ export const ${destFilename} = /*#__PURE__*/wrapIcon(/*#__PURE__*/${destFilename
   /** @type string[][] */
   const iconChunks = [];
   while(iconExports.length > 0) {
-    iconChunks.push(iconExports.splice(0, 500));
+    iconChunks.push(iconExports.splice(0, 1000));
   }
 
   for(const chunk of iconChunks) {
-    chunk.unshift(`import wrapIcon from "../utils/wrapIcon";`)
-    chunk.unshift(`import { FluentIconsProps } from "../utils/FluentIconsProps.types";`)
-    chunk.unshift(`import * as React from "react";`)
+    chunk.unshift(`import { createFluentIcon } from "../utils/createFluentIcon";`);
+    chunk.unshift(`import type { FluentIcon } from "../utils/createFluentIcon";`);
+    chunk.unshift(`"use client";`);
   }
 
   /** @type string[] */
